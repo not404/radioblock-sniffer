@@ -1,0 +1,6 @@
+
+**** Clean-only build of configuration Debug for project RadioBlocksSniffer ****
+
+make clean 
+rm -rf  ./cr_startup_lpc11.o ./main.o  ./radio/hal.o ./radio/radio.o  ./drivers/adc.o ./drivers/clkconfig.o ./drivers/gpio.o ./drivers/i2c.o ./drivers/ssp.o ./drivers/timer16.o ./drivers/uart.o ./drivers/wdt.o  ./cr_startup_lpc11.d ./main.d  ./radio/hal.d ./radio/radio.d  ./drivers/adc.d ./drivers/clkconfig.d ./drivers/gpio.d ./drivers/i2c.d ./drivers/ssp.d ./drivers/timer16.d ./drivers/uart.d ./drivers/wdt.d  RadioBlocksSniffer.axf
+ 

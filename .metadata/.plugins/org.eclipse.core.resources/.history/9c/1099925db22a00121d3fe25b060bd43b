@@ -1,0 +1,153 @@
+/* Copyright (c) 2011  Colorado Micro Devices Corporation
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
+     the documentation and/or other materials provided with the
+     distribution.
+   * Neither the name of the copyright holders nor the names of
+     contributors may be used to endorse or promote products derived
+     from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+*/
+/*
+  $Id: hal.h,v 1.1 2012/04/25 17:42:57 cvsuser Exp $
+*/
+
+#ifndef _HAL_H
+#define _HAL_H_
+
+#include "LPC11xx.h"
+#include "type.h"
+#include <stdint.h>
+#include "driver_config.h"
+#include "gpio.h"
+#include <stdbool.h>
+
+//-----------------------Sniffer Globals---------------------------------------
+
+// Global variables for circular buffer and sniffing
+uint8_t start;
+uint8_t end;
+#define circSize 1024
+uint8_t	sniffBuff[circSize];
+
+void writeByte(uint8_t data);
+uint8_t readByte(void);
+
+//---------------------------Globals--------------------------------------------
+u8 trx_buf[129];  /* 127 + space for RSSI/LQI */
+extern _Bool spi_spinlock;
+extern u8 rx_mode;
+
+
+typedef struct
+{
+    u8 length;                       // Length of frame.
+    u8 data[32];                    // Actual frame data (max payload size).
+    u8 lqi;                          // LQI value for received frame.
+    u8 rssi;
+} rx_frame_t;
+
+extern rx_frame_t *rx_frame;
+
+/* 
+  This macro will protect any subsequent code from SPI corruption.
+  ENTER_CRITICAL_REGION is only called right before the SPI is reading/writing 
+  data from/to a frame or register. First, the function checks to see if the 
+  spinlock is busy. If it is, then it waits until it is NOT busy 
+  (spi_spinlock = false). If the spi_spinlock is NOT busy, then the 
+  subsequent functions can execute, which translate to the SPI being BUSY, 
+  so then it sets the spi_spinlock to True. 
+*/
+#define ENTER_CRITICAL_REGION() while(spi_spinlock); GPIOIntDisable(IRQ); spi_spinlock = 1
+
+/* 
+  When the important SPI functions have finished, then the 
+  LEAVE_CRITICAL_REGION will unlock the spi_spinlock. 
+*/
+#define LEAVE_CRITICAL_REGION() spi_spinlock = 0; GPIOIntEnable(IRQ)
+
+/* 
+  On the LPC device (lpc1111,12,14 - QFN33) the location of the radio and SPI
+  function is located according to these macros.
+*/ 
+#define PIO0 0
+#define PIO1 1
+#define PIO3 3
+
+#define RST     PIO1, 11
+#define IRQ     PIO1, 2
+#define SEL     PIO0, 2
+#define MISO    PIO0, 8
+#define MOSI    PIO0, 9
+#define SCK     PIO0, 6
+#define SLP_TR  PIO1, 4
+
+#define LED		PIO3, 2
+#define DBG1	PIO1, 0
+#define DBG2	PIO1, 1
+
+#define HAL_SS_LOW() GPIOSetValue(SEL, 0)
+#define HAL_SS_HIGH() GPIOSetValue(SEL, 1)
+#define hal_set_slptr_low() GPIOSetValue(SLP_TR, 0)
+#define hal_set_slptr_high() GPIOSetValue(SLP_TR, 1)
+#define hal_set_rst_low() GPIOSetValue(RST, 0)
+#define hal_set_rst_high() GPIOSetValue(RST, 1)
+#define enable_radio_irq() GPIOIntEnable(IRQ)
+
+#define LEDon() GPIOSetValue(LED, 1)
+#define LEDoff() GPIOSetValue(LED, 0)
+
+#define DBG1on() GPIOSetValue(DBG1, 1)
+#define DBG1off() GPIOSetValue(DBG1, 0)
+#define DBG2on() GPIOSetValue(DBG2, 1)
+#define DBG2off() GPIOSetValue(DBG2, 0)
+
+/*
+  Macros defined for the radio transceiver's access modes.
+  
+  These functions are implemented as macros since they are used very often and
+  we want to remove the function call overhead.
+ */
+#define HAL_DUMMY_READ         (0x00) // Dummy value for the SPI.
+
+#define HAL_TRX_CMD_RW         (0xC0) // Register Write (short mode).
+#define HAL_TRX_CMD_RR         (0x80) // Register Read (short mode).
+#define HAL_TRX_CMD_FW         (0x60) // Frame Transmit Mode (long mode).
+#define HAL_TRX_CMD_FR         (0x20) // Frame Receive Mode (long mode).
+#define HAL_TRX_CMD_SW         (0x40) // SRAM Write.
+#define HAL_TRX_CMD_SR         (0x00) // SRAM Read.
+#define HAL_TRX_CMD_RADDRM     (0x7F) // Register Address Mask.
+
+#define HAL_CALCULATED_CRC_OK   (0)   // CRC calculated over the frame including the CRC field should be 0.
+
+//------------------------- Prototypes -----------------------------------------
+u8 		hal_subregister_read(u8 address, u8 mask, u8 position);
+void 	hal_subregister_write(u8 address, u8 mask, u8 position, u8 value);
+u8 		hal_register_read(u8 address);
+void 	hal_register_write(u8 address, u8 value);
+void 	hal_frame_read(void);
+void 	hal_frame_write(u8 *write_buffer, u8 length);
+void 	hal_init(void);
+void 	timer_16B0_init(void);
+void 	delay_us(u16 count);
+void 	delay_ms(u16 ms);
+
+#endif // _HAL_H_

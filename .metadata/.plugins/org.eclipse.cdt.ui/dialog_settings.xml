@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="completion_proposal_size">
+	</section>
+	<section name="PDOMSearchPage">
+		<item value="227191" key="searchFlags"/>
+		<item value="false" key="caseSensitive"/>
+		<list key="previousPatterns">
+			<item value="frameFlag"/>
+			<item value="rx_mode"/>
+			<item value="frameSize"/>
+			<item value="LEDon"/>
+			<item value="LPC_IOCON"/>
+			<item value="DBG2"/>
+			<item value="DBG1"/>
+			<item value="SYSAHBCLKCTRL"/>
+			<item value="SystemInit"/>
+			<item value="UARTSend"/>
+			<item value="RG_IRQ_MASK"/>
+			<item value="radio_trx_end_event"/>
+			<item value="delayPos"/>
+			<item value="spi_spinlock"/>
+		</list>
+	</section>
+	<section name="org.eclipse.cdt.ui.text.hover.CMacroExpansionExploration.internal">
+		<item value="639" key="size.width"/>
+		<item value="180" key="size.height"/>
+	</section>
+	<section name="org.eclipse.cdt.ui.text.hover.CMacroExpansionExploration">
+	</section>
+</section>

@@ -1,0 +1,291 @@
+/* Copyright (c) 2011  Colorado Micro Devices Corporation
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
+     the documentation and/or other materials provided with the
+     distribution.
+   * Neither the name of the copyright holders nor the names of
+     contributors may be used to endorse or promote products derived
+     from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+*/
+/*
+  $Id: hal.c,v 1.1 2012/04/25 17:42:57 cvsuser Exp $
+*/
+
+/*============================ INCLUDE =======================================*/
+
+#include "hal.h"
+#include "type.h"
+#include "rf231.h"
+#include "ssp.h"
+
+// For delay
+#include "LPC11xx.h"
+#include "gpio.h"
+#include "timer16.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+
+//--------------------------- Globals ----------------------------------------//
+
+/* 
+    This function reads the value of a specific subregister.
+ 
+    param  address  Main register's address.
+    param  mask  Bit mask of the subregister.
+    param  position   Bit position of the subregister
+    retval Value of the read subregister.
+*/
+u8 hal_subregister_read(u8 address, u8 mask, u8 position)
+{
+    //Read current register value and mask out subregister.
+    u8 register_value = hal_register_read(address);
+    register_value &= mask;
+    //Align subregister value.
+    register_value >>= position; 
+
+    return register_value;
+}
+
+/*  
+    This function writes a new value to one of the radio transceiver's
+    subregisters.
+ 
+    param  address  Main register's address.
+    param  mask  Bit mask of the subregister.
+    param  position  Bit position of the subregister
+    param  value  Value to write into the subregister.
+*/
+void hal_subregister_write(u8 address, u8 mask, u8 position, u8 value)
+{
+    //Read current register value and mask area outside the subregister.
+    u8 register_value = hal_register_read(address);
+    register_value &= ~mask;
+
+    //Start preparing the new subregister value. shift in place and mask.
+    value <<= position;
+    value &= mask;
+    
+    //Set the new subregister value.
+    value |= register_value; 
+
+    //Write the modified register value.
+    hal_register_write(address, value);
+}
+
+/*  
+    This function reads data from one of the radio transceiver's registers.
+ 
+    returns The actual value of the read register.
+*/
+u8 hal_register_read(u8 address)
+{
+    u8 buf[2];
+    
+    //Add the register read command to the register address.
+    address &= HAL_TRX_CMD_RADDRM;
+    address |= HAL_TRX_CMD_RR;
+
+    // Send the address to read.
+    ENTER_CRITICAL_REGION();
+    // Start the SPI transaction by pulling the Slave Select low.
+    HAL_SS_LOW(); 
+
+    // Transmission is started by writing the transmit data.
+    SSPSend((u8 *)&address, 1 );
+
+    // Read data.
+    SSPReceive(buf, 1);
+    address = buf[0];
+
+    //End the transaction by pulling the Slave Select High.
+    HAL_SS_HIGH(); 
+    LEAVE_CRITICAL_REGION();
+
+    return address;
+}
+
+/*  
+    This function writes a new value to one of the radio transceiver's
+    registers.
+ 
+    param  address Address of register to write.
+    param  value   Value to write.
+*/
+void hal_register_write(u8 address, u8 value)
+{
+    // Add the Register Write command to the address.
+    address = HAL_TRX_CMD_RW | (HAL_TRX_CMD_RADDRM & address);
+
+    ENTER_CRITICAL_REGION();
+    HAL_SS_LOW(); //Start the SPI transaction by pulling the Slave Select low.
+
+    // Transmission is started by writing the transmit data.
+    SSPSend((u8 *)&address, 1 );
+
+    // Transmission is started by writing the transmit data.
+    SSPSend((u8 *)&value, 1 );
+
+    // End the transaction by pulling the Slave Select High.
+    HAL_SS_HIGH(); 
+    LEAVE_CRITICAL_REGION();
+
+    if ((address & ~HAL_TRX_CMD_RW) == RG_TRX_STATE)
+    {
+        // Set rx_mode flag based on mode we're changing to
+        value &= 0x1f;   // Mask for TRX_STATE register
+        if (value == RX_ON ||
+            value == RX_AACK_ON)
+            rx_mode = 1;
+        else
+            rx_mode = 0;
+    }
+}
+
+/*  
+    This function will upload a frame from the radio transceiver's frame
+    buffer.
+ 
+   If the frame currently available in the radio transceiver's frame buffer
+   is out of the defined bounds. Then the frame length, lqi value and crc
+   be set to zero. This is done to indicate an error.
+*/
+void hal_frame_read(void)
+{
+    u8 tempData;
+// ETG    rx_frame_t *rx_frame=(rx_frame_t*)trx_buf;
+
+    ENTER_CRITICAL_REGION();
+    //Start the SPI transaction by pulling the Slave Select low.
+    HAL_SS_LOW(); 
+
+    // Send frame read command.
+    tempData = HAL_TRX_CMD_FR;
+    SSPSend((u8 *)&tempData, 1);
+
+    // Read frame length.
+    SSPReceive(&rx_frame->length, 1);
+
+    // Check for correct frame length.
+    if ((rx_frame->length >= 3) && (rx_frame->length <= 127))
+    {
+    	// Get data
+        SSPReceive( &rx_frame->data[0], rx_frame->length);
+
+        // LQI value for this frame is appended to data.
+        SSPReceive( &rx_frame->lqi, 1);
+
+        HAL_SS_HIGH(); //End the transaction by pulling the Slave Select High.
+    }
+    else
+    {
+        HAL_SS_HIGH(); //End the transaction by pulling the Slave Select High.
+
+        if (rx_frame)
+        {
+            rx_frame->length = 0;
+            rx_frame->lqi    = 0;
+        }
+    }
+    LEAVE_CRITICAL_REGION();
+}
+
+/*  
+    This function will download a frame to the radio transceiver's frame
+    buffer.
+   
+    write_buffer    Pointer to data that is to be written to frame buffer.
+    length          Length of data. The maximum length is 127 bytes.
+*/
+void hal_frame_write(u8 *write_buffer, u8 length)
+{
+    u8 tempData;
+
+    ENTER_CRITICAL_REGION();
+    //Toggle the SLP_TR pin to initiate the frame transmission.
+    hal_set_slptr_high();
+    hal_set_slptr_low();
+
+    //Start the SPI transaction by pulling the Slave Select low.
+    HAL_SS_LOW();
+
+    // SEND FRAME WRITE COMMAND AND FRAME LENGTH.
+    tempData = HAL_TRX_CMD_FW;
+    SSPSend((u8 *)&tempData, 1 );
+    SSPSend((u8 *)&length, 1 );
+
+    //Download to the Frame Buffer.
+    SSPSend(write_buffer, length );
+
+    //End the transaction by pulling the Slave Select High.
+    HAL_SS_HIGH(); 
+    LEAVE_CRITICAL_REGION();
+}
+
+
+/*
+    This function initializes the Hardware Abstraction Layer.
+*/
+
+void hal_init(void)
+{
+	  GPIOInit();
+	  SSP_Init(0); // Init SPI0
+
+/*    // Set data direction of the GPIO.
+    // IRQ - IN
+    GPIOSetDir(IRQ, 0);
+    // port2_1 (IRQ), single edge trigger, positive edge.
+    GPIOSetInterrupt(IRQ, 1, 0, 1);
+    GPIOIntEnable(IRQ);
+*/
+
+    // SLP_TR - OUT
+    GPIOSetDir(SLP_TR, 1);
+    GPIOSetValue(SLP_TR, 0);
+    
+    // Configure PIO1_2 (IRQ) as PIO-Function
+    //LPC_IOCON->R_PIO1_2 =0x69;
+    
+    // RST - OUT
+    GPIOSetDir(RST, 1);
+    GPIOSetValue(RST, 1);
+
+    // LED - OUT
+    GPIOSetDir(LED, 1);
+    GPIOSetValue(LED, 1);
+
+
+}
+
+void radioIrqInit(void)
+{
+    // Set data direction of the GPIO.
+    // IRQ - IN
+    GPIOSetDir(IRQ, 0);
+    // port2_1 (IRQ), single edge trigger, positive edge.
+    GPIOSetInterrupt(IRQ, 1, 0, 1);
+    GPIOIntEnable(IRQ);
+}
+
+
+

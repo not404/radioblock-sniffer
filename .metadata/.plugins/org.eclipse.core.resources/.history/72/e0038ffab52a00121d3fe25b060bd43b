@@ -1,0 +1,298 @@
+/*
+===============================================================================
+ Name        : main.c
+ Author      : 
+ Version     :
+ Copyright   : Copyright (C) 
+ Description : main definition
+===============================================================================
+*/
+
+#ifdef __USE_CMSIS
+#include "LPC11xx.h"
+#endif
+
+// ETG #include <cr_section_macros.h>
+// ETG #include <NXP/crp.h>
+
+// Variable to store CRP value in. Will be placed automatically
+// by the linker when "Enable Code Read Protect" selected.
+// See crp.h header for more information
+// ETG __CRP const unsigned int CRP_WORD = CRP_NO_CRP ;
+
+
+#include <stdbool.h>
+#include <string.h>
+#include "hal.h"
+#include "radio.h"
+#include "rf231.h"
+
+#include "timer16.h"
+#include "uart.h"
+
+// TODO: insert other definitions and declarations here
+u8 rx_mode;
+_Bool spi_spinlock;
+
+
+void convertTwoBytes(void);
+void convertOneByte(void);
+void spaces(u8 spaces);
+
+typedef enum{	fcf		= 0,
+				seq		= 1,
+				panid	= 3,
+				macdst	= 5,
+				macsrc	= 7,
+				nwkfcf	= 8,
+				nwkseq	= 9,
+				nwksrc	= 10,
+				nwkdst	= 12,
+				payload = 13,
+				lqi		= 14,
+				rssi 	= 15}frameState_t;
+
+int main(void)
+{
+	u8 len = 0;
+	u8 ackFlag = 0;
+	frameState_t fState = fcf;
+
+	// Global variables for circular buffer and sniffing
+	start = 0;
+	end = 0;
+
+	// Init GPIO, SPI, Radio
+	radio_init();
+
+	// Setup the UART.
+	UARTInit(115200);
+
+	radio_set_channel(15);
+
+
+    while(1)
+    {
+    	if(frame_received != 0)
+    	{
+        	DBG1on();
+
+        	while(end != start)
+        	{
+        		// Start grabbing bytes from the circular buffer.
+				len = readByte();
+				if(len == 5)
+					ackFlag = 1;
+
+				while(len != 0)
+				{
+					// Do some minimal formatting so that 2 byte fields:
+					// FCF, panid, addresses are byte swapped.
+					switch(fState)
+					{
+						// FCF
+						case fcf:
+							convertTwoBytes();
+							fState = seq;
+							len -= 2;
+							void spaces(4);
+							break;
+						case seq:
+							convertOneByte();
+							if(!ackFlag)
+							{
+								fState = panid;
+							}
+							else
+							{
+								fState = lqi;
+								ackFlag = 0;
+							}
+							len -= 1;
+							void spaces(4);
+							break;
+						// panid
+						case panid:
+							convertTwoBytes();
+							fState = macdst;
+							len -= 2;
+							void spaces(4);
+							break;
+						// mac dest
+						case macdst:
+							convertTwoBytes();
+							fState = macsrc;
+							len -= 2;
+							void spaces(4);
+							break;
+						// mac src
+						case macsrc:
+							convertTwoBytes();
+							fState = nwkfcf;
+							len -= 2;
+							void spaces(4);
+							break;
+						case nwkfcf:
+							convertOneByte();
+							fState = nwkseq;
+							len -= 1;
+							void spaces(4);
+							break;
+						case nwkseq:
+							convertOneByte();
+							fState = nwksrc;
+							len -= 1;
+							void spaces(4);
+							break;
+						// nwk src
+						case nwksrc:
+							convertTwoBytes();
+							fState = nwkdst;
+							len -= 2;
+							void spaces(4);
+							break;
+						// nwk dst
+						case nwkdst:
+							convertTwoBytes();
+							fState = payload;
+							len -= 2;
+							void spaces(4);
+							break;
+						// Payload
+						case payload:
+							convertOneByte();
+							len--;
+							if(len == 2)
+								fState = lqi;
+							break;
+						// LQI
+						case lqi:
+							void spaces(4);
+							convertOneByte();
+							fState = rssi;
+							len--;
+							void spaces(4);
+							break;
+						// rssi
+						case rssi:
+							convertOneByte();
+							fState = fcf;
+							len--;
+							break;
+					};
+        		}
+    					// Put a carriage return after each line to make it readable
+    					while ( !(LPC_UART->LSR & LSR_THRE) );
+    					LPC_UART->THR = '\n';
+        	}
+					frame_received = 0;
+					DBG1off();
+    	}
+    }
+
+	return 0 ;
+}
+
+void spaces(u8 spaces)
+{
+	u8 i;
+
+	for(i=0; i< spaces; i++)
+	{
+		// Put a carriage return after each line to make it readable
+		while ( !(LPC_UART->LSR & LSR_THRE) );
+		LPC_UART->THR = '\n';
+	}
+}
+void convertOneByte(void)
+{
+	u8 rawByte;
+	u8 asciiByte1, asciiByte2;
+
+	rawByte = readByte();
+
+	// Shift down and convert the MSNibble
+	if((0x0F & (rawByte >> 4)) < 10)
+		asciiByte1 = (0x0F & (rawByte >> 4)) + '0';		// 0 - 9
+	else
+		asciiByte1 = (0x0F & (rawByte >> 4)) + 87;		// a - f
+	while ( !(LPC_UART->LSR & LSR_THRE) );
+	LPC_UART->THR = asciiByte1;
+
+	// Convert the LSNibble
+	if((0x0F & rawByte)  < 10 )
+		asciiByte2 = (0x0F & rawByte) + '0';			// 0 - 9
+	else
+		asciiByte2 = (0x0F & rawByte) + 87;				// a - f
+	while ( !(LPC_UART->LSR & LSR_THRE) );
+	LPC_UART->THR = asciiByte2;
+}
+void convertTwoBytes(void)
+{
+	u8 dat[4];
+	u8 rawByte;
+	u8 i;
+
+	rawByte = readByte();
+
+	// The first byte is passed in and needs conversion
+
+	// Shift down and convert the MSNibble
+	if((0x0F & (rawByte >> 4)) < 10)
+		dat[2] = (0x0F & (rawByte >> 4)) + '0';		// 0 - 9
+	else
+		dat[2] = (0x0F & (rawByte >> 4)) + 87;		// a - f
+
+	// Convert the LSNibble
+	if((0x0F & rawByte)  < 10 )
+		dat[3] = (0x0F & rawByte) + '0';			// 0 - 9
+	else
+		dat[3] = (0x0F & rawByte) + 87;				// a - f
+
+	// Read the second byte and convert
+	rawByte = readByte();
+
+	// Shift down and convert the MSNibble
+	if((0x0F & (rawByte >> 4)) < 10)
+		dat[0] = (0x0F & (rawByte >> 4)) + '0';		// 0 - 9
+	else
+		dat[0] = (0x0F & (rawByte >> 4)) + 87;		// a - f
+
+	// Convert the LSNibble
+	if((0x0F & rawByte)  < 10 )
+		dat[1] = (0x0F & rawByte) + '0';			// 0 - 9
+	else
+		dat[1] = (0x0F & rawByte) + 87;				// a - f
+
+	for(i=0; i<4; i++)
+	{
+		while ( !(LPC_UART->LSR & LSR_THRE) );
+		LPC_UART->THR = dat[i];
+	}
+}
+
+void writeByte(uint8_t data)
+{
+	// Put the byte into the buffer.
+	sniffBuff[start] = data;
+
+	// Adjust the start value if it wraps around.
+	if((start + 1) < circSize)
+		start += 1;
+	else
+		start = 0;
+}
+
+uint8_t readByte(void)
+{
+	uint8_t data;
+
+	data = sniffBuff[end];
+
+	if((end + 1) < circSize)
+		end += 1;
+	else
+		end = 0;
+
+	return data;
+}
