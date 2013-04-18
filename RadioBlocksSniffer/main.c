@@ -30,12 +30,14 @@ extern uint32_t UARTCount;
 u8 rx_mode;
 _Bool spi_spinlock;
 
-
+void writeOneByte(uint8_t ch);
 void convertTwoBytes(void);
 void convertOneByte(void);
 void spaces(u8 spaces);
 
-typedef enum{	fcf		= 0,
+typedef enum{
+				fr_len  = 99,
+				fcf		= 0,
 				seq		= 1,
 				panid	= 3,
 				macdst	= 5,
@@ -53,7 +55,7 @@ int main(void)
 	u8 len = 0;
 	u8 channel = 11;
 	u8 ackFlag = 0;
-	frameState_t fState = fcf;
+	frameState_t fState = fr_len;
 
 	// Global variables for circular buffer and sniffing
 	start = 0;
@@ -108,6 +110,14 @@ int main(void)
 					// FCF, panid, addresses are byte swapped.
 					switch(fState)
 					{
+						case fr_len:
+							writeOneByte(0x0a);
+							writeOneByte(0x0b);
+							writeOneByte(0x0c);
+							writeOneByte(0x0d);
+							writeOneByte(len);
+							fState = fcf;
+							break;
 						// FCF
 						case fcf:
 							convertTwoBytes();
@@ -115,7 +125,7 @@ int main(void)
 							len -= 2;
 							break;
 						case seq:
-							spaces(2);
+							// ETG spaces(2);
 							convertOneByte();
 							if(!ackFlag)
 							{
@@ -129,51 +139,51 @@ int main(void)
 							break;
 						// panid
 						case panid:
-							spaces(3);
+							// ETG spaces(3);
 							convertTwoBytes();
 							fState = macdst;
 							len -= 2;
 							break;
 						// mac dest
 						case macdst:
-							spaces(3);
+							// ETG spaces(3);
 							convertTwoBytes();
 							fState = macsrc;
 							len -= 2;
 							break;
 						// mac src
 						case macsrc:
-							spaces(4);
+							// ETG spaces(4);
 							convertTwoBytes();
 							fState = nwkfcf;
 							len -= 2;
 							break;
 						case nwkfcf:
-							spaces(8);
+							// ETG spaces(8);
 							convertOneByte();
 							fState = nwkseq;
 							len -= 1;
 							break;
 						case nwkseq:
-							spaces(2);
+							// ETG spaces(2);
 							convertOneByte();
 							fState = nwksrc;
 							len -= 1;
 							break;
 						// nwk src
 						case nwksrc:
-							spaces(2);
+							// ETG spaces(2);
 							convertTwoBytes();
 							fState = nwkdst;
 							len -= 2;
 							break;
 						// nwk dst
 						case nwkdst:
-							spaces(3);
+							// ETG spaces(3);
 							convertTwoBytes();
 							fState = payload;
 							len -= 2;
-							spaces(3);
+							// ETG spaces(3);
 							break;
 						// Payload
 						case payload:
@@ -184,22 +194,23 @@ int main(void)
 							break;
 						// LQI
 						case lqi:
-							if(!ackFlag)
-								spaces(2);
-							else
+							// ETG if(!ackFlag)
+								// ETG spaces(2);
+							// ETG else
+							if(ackFlag)
 							{
-								spaces(62);
+								// ETG spaces(62);
 								ackFlag = 0;
 							}
 							convertOneByte();
 							fState = rssi;
 							len--;
-							spaces(1);
+							// ETG spaces(1);
 							break;
 						// rssi
 						case rssi:
 							convertOneByte();
-							fState = fcf;
+							fState = fr_len;
 							len--;
 							break;
 					};
@@ -216,6 +227,7 @@ int main(void)
 	return 0 ;
 }
 
+/* ETG
 // Functions for Hex Ascii conversion and byte formatting for the sniffer display.
 void spaces(u8 spaces)
 {
@@ -228,6 +240,30 @@ void spaces(u8 spaces)
 		LPC_UART->THR = ' ';
 	}
 }
+*/
+
+void writeOneByte(uint8_t ch)
+{
+	u8 rawByte = ch;
+	u8 asciiByte1, asciiByte2;
+
+	// Shift down and convert the MSNibble
+	if((0x0F & (rawByte >> 4)) < 10)
+		asciiByte1 = (0x0F & (rawByte >> 4)) + '0';		// 0 - 9
+	else
+		asciiByte1 = (0x0F & (rawByte >> 4)) + 87;		// a - f
+	while ( !(LPC_UART->LSR & LSR_THRE) );
+	LPC_UART->THR = asciiByte1;
+
+	// Convert the LSNibble
+	if((0x0F & rawByte)  < 10 )
+		asciiByte2 = (0x0F & rawByte) + '0';			// 0 - 9
+	else
+		asciiByte2 = (0x0F & rawByte) + 87;				// a - f
+	while ( !(LPC_UART->LSR & LSR_THRE) );
+	LPC_UART->THR = asciiByte2;
+}
+
 void convertOneByte(void)
 {
 	u8 rawByte;
