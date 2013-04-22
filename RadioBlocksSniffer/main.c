@@ -70,11 +70,11 @@ int main(void)
 
 	// Set a default channel
 	radio_set_channel(15);
-
+	channel = radio_get_channel();
 
     while(1)
     {
-    	// Check to see if chanel changed
+    	// Check to see if channel changed
     	if(rxdFlag)
     	{
     		if(UARTBuffer[0] == 'C')
@@ -87,6 +87,16 @@ int main(void)
     			memset(UARTBuffer, 0, BUFSIZE);
     			// DEBUG
     			//channel = radio_get_channel();
+    		}
+    		else if(UARTBuffer[0] == 'G')
+    		{
+    			channel = radio_get_channel();
+    			rxdFlag = 0;
+    			UARTCount = 0;
+    			memset(UARTBuffer, 0, BUFSIZE);
+    			// Send the channel over the uart
+    			while ( !(LPC_UART->LSR & LSR_THRE) );
+    				LPC_UART->THR = channel;
     		}
     	}
 

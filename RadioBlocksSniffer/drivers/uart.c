@@ -69,8 +69,8 @@ void UART_IRQHandler(void)
       UARTCount = 0;		/* buffer overflow */
     }
 
-    // Sniffer channel change
-    if(UARTCount > 2)
+    // Get sniffer channel or Sniffer channel change
+    if((UARTCount == 1) || (UARTCount > 2))
   	  rxdFlag = 1;
   }
   else if (IIRValue == IIR_CTI)	/* Character timeout indicator */

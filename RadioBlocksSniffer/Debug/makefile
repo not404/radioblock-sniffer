@@ -42,7 +42,7 @@ clean:
 
 post-build:
 	-@echo 'Performing post-build steps'
-	-arm-none-eabi-size "RadioBlocksSniffer.axf"; arm-none-eabi-objcopy -O binary "RadioBlocksSniffer.axf" "RadioBlocksSniffer.bin" ; checksum -p LPC1114_201 -d "RadioBlocksSniffer.bin";
+	-arm-none-eabi-size "RadioBlocksSniffer.axf"; arm-none-eabi-objcopy -O binary "RadioBlocksSniffer.axf" "RadioBlocksSniffer.bin" ; checksum -p LPC1114_302 -d "RadioBlocksSniffer.bin";
 	-@echo ' '
 
 .PHONY: all clean dependents

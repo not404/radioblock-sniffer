@@ -390,7 +390,7 @@ Memory Configuration
 
 Name             Origin             Length             Attributes
 MFlash32         0x0000000000000000 0x0000000000008000 xr
-RamLoc4          0x0000000010000000 0x0000000000001000 xrw
+RamLoc8          0x0000000010000000 0x0000000000002000 xrw
 *default*        0x0000000000000000 0xffffffffffffffff
 
 Linker script and memory map
@@ -413,9 +413,9 @@ LOAD /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none
 LOAD /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/armv6-m/libcr_eabihelpers.a
 END GROUP
                 0x0000000000008000                __top_MFlash32 = 0x8000
-                0x0000000010001000                __top_RamLoc4 = 0x10001000
+                0x0000000010002000                __top_RamLoc8 = 0x10002000
 
-.text           0x0000000000000000     0x1dc4
+.text           0x0000000000000000     0x1e20
  FILL mask 0xff
  *(.isr_vector)
  .isr_vector    0x0000000000000000       0xc0 ./cr_startup_lpc11.o
@@ -423,7 +423,7 @@ END GROUP
                 0x00000000000000c0                . = ALIGN (0x4)
                 0x00000000000000c0                __section_table_start = .
                 0x00000000000000c0                __data_section_table = .
-                0x00000000000000c0        0x4 LONG 0x1dc4 LOADADDR (.data)
+                0x00000000000000c0        0x4 LONG 0x1e20 LOADADDR (.data)
                 0x00000000000000c4        0x4 LONG 0x10000000 ADDR (.data)
                 0x00000000000000c8        0x4 LONG 0x8 SIZEOF (.data)
                 0x00000000000000cc                __data_section_table_end = .
@@ -456,163 +456,163 @@ END GROUP
                 0x0000000000000200                PIOINT3_IRQHandler
                 0x0000000000000200                TIMER32_1_IRQHandler
  *(.text*)
- .text.main     0x0000000000000208      0x29c ./main.o
+ .text.main     0x0000000000000208      0x2e8 ./main.o
                 0x0000000000000208                main
  .text.writeOneByte
-                0x00000000000004a4       0xc0 ./main.o
-                0x00000000000004a4                writeOneByte
+                0x00000000000004f0       0xc0 ./main.o
+                0x00000000000004f0                writeOneByte
  .text.convertOneByte
-                0x0000000000000564       0xa0 ./main.o
-                0x0000000000000564                convertOneByte
+                0x00000000000005b0       0xa0 ./main.o
+                0x00000000000005b0                convertOneByte
  .text.convertTwoBytes
-                0x0000000000000604      0x11c ./main.o
-                0x0000000000000604                convertTwoBytes
+                0x0000000000000650      0x11c ./main.o
+                0x0000000000000650                convertTwoBytes
  .text.writeByte
-                0x0000000000000720       0x4c ./main.o
-                0x0000000000000720                writeByte
- .text.readByte
                 0x000000000000076c       0x4c ./main.o
-                0x000000000000076c                readByte
+                0x000000000000076c                writeByte
+ .text.readByte
+                0x00000000000007b8       0x4c ./main.o
+                0x00000000000007b8                readByte
  .text.hal_subregister_read
-                0x00000000000007b8       0x58 ./radio/hal.o
-                0x00000000000007b8                hal_subregister_read
+                0x0000000000000804       0x58 ./radio/hal.o
+                0x0000000000000804                hal_subregister_read
  .text.hal_subregister_write
-                0x0000000000000810       0x8c ./radio/hal.o
-                0x0000000000000810                hal_subregister_write
+                0x000000000000085c       0x8c ./radio/hal.o
+                0x000000000000085c                hal_subregister_write
  .text.hal_register_read
-                0x000000000000089c       0x94 ./radio/hal.o
-                0x000000000000089c                hal_register_read
+                0x00000000000008e8       0x94 ./radio/hal.o
+                0x00000000000008e8                hal_register_read
  .text.hal_register_write
-                0x0000000000000930       0xb4 ./radio/hal.o
-                0x0000000000000930                hal_register_write
+                0x000000000000097c       0xb4 ./radio/hal.o
+                0x000000000000097c                hal_register_write
  .text.hal_init
-                0x00000000000009e4       0xd0 ./radio/hal.o
-                0x00000000000009e4                hal_init
+                0x0000000000000a30       0xd0 ./radio/hal.o
+                0x0000000000000a30                hal_init
  .text.radio_init
-                0x0000000000000ab4       0xcc ./radio/radio.o
-                0x0000000000000ab4                radio_init
+                0x0000000000000b00       0xcc ./radio/radio.o
+                0x0000000000000b00                radio_init
  .text.radio_get_channel
-                0x0000000000000b80       0x1c ./radio/radio.o
-                0x0000000000000b80                radio_get_channel
+                0x0000000000000bcc       0x24 ./radio/radio.o
+                0x0000000000000bcc                radio_get_channel
  .text.radio_set_channel
-                0x0000000000000b9c       0x98 ./radio/radio.o
-                0x0000000000000b9c                radio_set_channel
+                0x0000000000000bf0       0x98 ./radio/radio.o
+                0x0000000000000bf0                radio_set_channel
  .text.radio_get_trx_state
-                0x0000000000000c34       0x18 ./radio/radio.o
-                0x0000000000000c34                radio_get_trx_state
+                0x0000000000000c88       0x18 ./radio/radio.o
+                0x0000000000000c88                radio_get_trx_state
  .text.radio_reset_trx
-                0x0000000000000c4c       0x30 ./radio/radio.o
-                0x0000000000000c4c                radio_reset_trx
+                0x0000000000000ca0       0x30 ./radio/radio.o
+                0x0000000000000ca0                radio_reset_trx
  .text.NVIC_EnableIRQ
-                0x0000000000000c7c       0x2c ./drivers/gpio.o
+                0x0000000000000cd0       0x2c ./drivers/gpio.o
  .text.PIOINT1_IRQHandler
-                0x0000000000000ca8      0x1c8 ./drivers/gpio.o
-                0x0000000000000ca8                PIOINT1_IRQHandler
+                0x0000000000000cfc      0x1c8 ./drivers/gpio.o
+                0x0000000000000cfc                PIOINT1_IRQHandler
  .text.GPIOInit
-                0x0000000000000e70       0x24 ./drivers/gpio.o
-                0x0000000000000e70                GPIOInit
+                0x0000000000000ec4       0x24 ./drivers/gpio.o
+                0x0000000000000ec4                GPIOInit
  .text.GPIOSetInterrupt
-                0x0000000000000e94      0x334 ./drivers/gpio.o
-                0x0000000000000e94                GPIOSetInterrupt
+                0x0000000000000ee8      0x334 ./drivers/gpio.o
+                0x0000000000000ee8                GPIOSetInterrupt
  .text.GPIOIntEnable
-                0x00000000000011c8       0xa8 ./drivers/gpio.o
-                0x00000000000011c8                GPIOIntEnable
+                0x000000000000121c       0xa8 ./drivers/gpio.o
+                0x000000000000121c                GPIOIntEnable
  .text.GPIOIntDisable
-                0x0000000000001270       0xa8 ./drivers/gpio.o
-                0x0000000000001270                GPIOIntDisable
+                0x00000000000012c4       0xa8 ./drivers/gpio.o
+                0x00000000000012c4                GPIOIntDisable
  .text.GPIOIntClear
-                0x0000000000001318       0xa8 ./drivers/gpio.o
-                0x0000000000001318                GPIOIntClear
+                0x000000000000136c       0xa8 ./drivers/gpio.o
+                0x000000000000136c                GPIOIntClear
  .text.GPIOSetValue
-                0x00000000000013c0       0x38 ./drivers/gpio.o
-                0x00000000000013c0                GPIOSetValue
+                0x0000000000001414       0x38 ./drivers/gpio.o
+                0x0000000000001414                GPIOSetValue
  .text.GPIOSetDir
-                0x00000000000013f8       0x74 ./drivers/gpio.o
-                0x00000000000013f8                GPIOSetDir
+                0x000000000000144c       0x74 ./drivers/gpio.o
+                0x000000000000144c                GPIOSetDir
  .text.SSP0_IRQHandler
-                0x000000000000146c       0x68 ./drivers/ssp.o
-                0x000000000000146c                SSP0_IRQHandler
+                0x00000000000014c0       0x68 ./drivers/ssp.o
+                0x00000000000014c0                SSP0_IRQHandler
  .text.SSP1_IRQHandler
-                0x00000000000014d4       0x68 ./drivers/ssp.o
-                0x00000000000014d4                SSP1_IRQHandler
+                0x0000000000001528       0x68 ./drivers/ssp.o
+                0x0000000000001528                SSP1_IRQHandler
  .text.SSP_Init
-                0x000000000000153c       0xf0 ./drivers/ssp.o
-                0x000000000000153c                SSP_Init
- .text.SSPSend  0x000000000000162c       0x50 ./drivers/ssp.o
-                0x000000000000162c                SSPSend
+                0x0000000000001590       0xf0 ./drivers/ssp.o
+                0x0000000000001590                SSP_Init
+ .text.SSPSend  0x0000000000001680       0x50 ./drivers/ssp.o
+                0x0000000000001680                SSPSend
  .text.SSPReceive
-                0x000000000000167c       0x60 ./drivers/ssp.o
-                0x000000000000167c                SSPReceive
+                0x00000000000016d0       0x60 ./drivers/ssp.o
+                0x00000000000016d0                SSPReceive
  .text.delay_microseconds
-                0x00000000000016dc       0xbc ./drivers/timer16.o
-                0x00000000000016dc                delay_microseconds
+                0x0000000000001730       0xbc ./drivers/timer16.o
+                0x0000000000001730                delay_microseconds
  .text.TIMER16_0_IRQHandler
-                0x0000000000001798       0x50 ./drivers/timer16.o
-                0x0000000000001798                TIMER16_0_IRQHandler
+                0x00000000000017ec       0x50 ./drivers/timer16.o
+                0x00000000000017ec                TIMER16_0_IRQHandler
  .text.TIMER16_1_IRQHandler
-                0x00000000000017e8       0x50 ./drivers/timer16.o
-                0x00000000000017e8                TIMER16_1_IRQHandler
+                0x000000000000183c       0x50 ./drivers/timer16.o
+                0x000000000000183c                TIMER16_1_IRQHandler
  .text.NVIC_EnableIRQ
-                0x0000000000001838       0x2c ./drivers/uart.o
+                0x000000000000188c       0x2c ./drivers/uart.o
  .text.NVIC_DisableIRQ
-                0x0000000000001864       0x30 ./drivers/uart.o
+                0x00000000000018b8       0x30 ./drivers/uart.o
  .text.UART_IRQHandler
-                0x0000000000001894      0x12c ./drivers/uart.o
-                0x0000000000001894                UART_IRQHandler
+                0x00000000000018e8      0x134 ./drivers/uart.o
+                0x00000000000018e8                UART_IRQHandler
  .text.UARTInit
-                0x00000000000019c0      0x124 ./drivers/uart.o
-                0x00000000000019c0                UARTInit
+                0x0000000000001a1c      0x124 ./drivers/uart.o
+                0x0000000000001a1c                UARTInit
  .text.SystemInit
-                0x0000000000001ae4       0x90 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
-                0x0000000000001ae4                SystemInit
+                0x0000000000001b40       0x90 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
+                0x0000000000001b40                SystemInit
  .text.__weak_main
-                0x0000000000001b74        0x8 /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/armv6-m/libcr_c.a(__weak__main.o)
-                0x0000000000001b74                __main
-                0x0000000000001b74                __weak_main
- .text.memset   0x0000000000001b7c        0x8 /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/armv6-m/libcr_c.a(memset.o)
-                0x0000000000001b7c                memset
+                0x0000000000001bd0        0x8 /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/armv6-m/libcr_c.a(__weak__main.o)
+                0x0000000000001bd0                __main
+                0x0000000000001bd0                __weak_main
+ .text.memset   0x0000000000001bd8        0x8 /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/armv6-m/libcr_c.a(memset.o)
+                0x0000000000001bd8                memset
  .text.__aeabi_division_uidivmod
-                0x0000000000001b84       0x72 /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/armv6-m/libcr_eabihelpers.a(division.o)
-                0x0000000000001b84                __aeabi_uidiv
-                0x0000000000001b84                __aeabi_uidivmod
+                0x0000000000001be0       0x72 /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/armv6-m/libcr_eabihelpers.a(division.o)
+                0x0000000000001be0                __aeabi_uidiv
+                0x0000000000001be0                __aeabi_uidivmod
  .text.__aeabi_division_idiv0
-                0x0000000000001bf6        0x2 /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/armv6-m/libcr_eabihelpers.a(division.o)
-                0x0000000000001bf6                __aeabi_idiv0
+                0x0000000000001c52        0x2 /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/armv6-m/libcr_eabihelpers.a(division.o)
+                0x0000000000001c52                __aeabi_idiv0
  .text.__aeabi_memset_lowlevel
-                0x0000000000001bf8       0x2a /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/armv6-m/libcr_eabihelpers.a(memcpy.o)
-                0x0000000000001bf8                __aeabi_lowlevel_memset
+                0x0000000000001c54       0x2a /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/armv6-m/libcr_eabihelpers.a(memcpy.o)
+                0x0000000000001c54                __aeabi_lowlevel_memset
  *(.rodata .rodata.*)
- *fill*         0x0000000000001c22        0x2 00
- .rodata.main   0x0000000000001c24      0x190 ./main.o
+ *fill*         0x0000000000001c7e        0x2 00
+ .rodata.main   0x0000000000001c80      0x190 ./main.o
  .rodata.LPC_GPIO
-                0x0000000000001db4       0x10 ./drivers/gpio.o
-                0x0000000000001dc4                . = ALIGN (0x4)
+                0x0000000000001e10       0x10 ./drivers/gpio.o
+                0x0000000000001e20                . = ALIGN (0x4)
 
-.glue_7         0x0000000000001dc4        0x0
+.glue_7         0x0000000000001e20        0x0
  .glue_7        0x0000000000000000        0x0 linker stubs
 
-.glue_7t        0x0000000000001dc4        0x0
+.glue_7t        0x0000000000001e20        0x0
  .glue_7t       0x0000000000000000        0x0 linker stubs
 
-.vfp11_veneer   0x0000000000001dc4        0x0
+.vfp11_veneer   0x0000000000001e20        0x0
  .vfp11_veneer  0x0000000000000000        0x0 linker stubs
 
-.v4_bx          0x0000000000001dc4        0x0
+.v4_bx          0x0000000000001e20        0x0
  .v4_bx         0x0000000000000000        0x0 linker stubs
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x0000000000001dc4                __exidx_start = .
+                0x0000000000001e20                __exidx_start = .
 
 .ARM.exidx
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-                0x0000000000001dc4                __exidx_end = .
-                0x0000000000001dc4                _etext = .
+                0x0000000000001e20                __exidx_end = .
+                0x0000000000001e20                _etext = .
 
 .uninit_RESERVED
  *(.bss.$RESERVED*)
 
-.data           0x0000000010000000        0x8 load address 0x0000000000001dc4
+.data           0x0000000010000000        0x8 load address 0x0000000000001e20
  FILL mask 0xff
                 0x0000000010000000                _data = .
  *(vtable)
@@ -627,7 +627,7 @@ END GROUP
                 0x0000000010000008                . = ALIGN (0x4)
                 0x0000000010000008                _edata = .
 
-.bss            0x0000000010000008      0x4fc load address 0x0000000000001dcc
+.bss            0x0000000010000008      0x4fc load address 0x0000000000001e28
                 0x0000000010000008                _bss = .
  *(.bss*)
  .bss.frame_received
@@ -688,23 +688,23 @@ END GROUP
                 0x0000000010000504                _ebss = .
                 0x0000000010000504                PROVIDE (end, .)
                 0x0000000010000504                PROVIDE (_pvHeapStart, .)
-                0x0000000010001000                PROVIDE (_vStackTop, (__top_RamLoc4 - 0x0))
+                0x0000000010002000                PROVIDE (_vStackTop, (__top_RamLoc8 - 0x0))
 OUTPUT(RadioBlocksSniffer.axf elf32-littlearm)
 
-.debug_info     0x0000000000000000     0x5360
+.debug_info     0x0000000000000000     0x5377
  .debug_info    0x0000000000000000      0x292 ./cr_startup_lpc11.o
- .debug_info    0x0000000000000292      0x6b5 ./main.o
- .debug_info    0x0000000000000947      0x798 ./radio/hal.o
- .debug_info    0x00000000000010df      0x94a ./radio/radio.o
- .debug_info    0x0000000000001a29       0x70 ./drivers/adc.o
- .debug_info    0x0000000000001a99       0x70 ./drivers/clkconfig.o
- .debug_info    0x0000000000001b09      0xb9d ./drivers/gpio.o
- .debug_info    0x00000000000026a6       0x70 ./drivers/i2c.o
- .debug_info    0x0000000000002716      0xbfa ./drivers/ssp.o
- .debug_info    0x0000000000003310      0xe45 ./drivers/timer16.o
- .debug_info    0x0000000000004155      0xc99 ./drivers/uart.o
- .debug_info    0x0000000000004dee       0x70 ./drivers/wdt.o
- .debug_info    0x0000000000004e5e      0x502 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
+ .debug_info    0x0000000000000292      0x6b8 ./main.o
+ .debug_info    0x000000000000094a      0x798 ./radio/hal.o
+ .debug_info    0x00000000000010e2      0x95e ./radio/radio.o
+ .debug_info    0x0000000000001a40       0x70 ./drivers/adc.o
+ .debug_info    0x0000000000001ab0       0x70 ./drivers/clkconfig.o
+ .debug_info    0x0000000000001b20      0xb9d ./drivers/gpio.o
+ .debug_info    0x00000000000026bd       0x70 ./drivers/i2c.o
+ .debug_info    0x000000000000272d      0xbfa ./drivers/ssp.o
+ .debug_info    0x0000000000003327      0xe45 ./drivers/timer16.o
+ .debug_info    0x000000000000416c      0xc99 ./drivers/uart.o
+ .debug_info    0x0000000000004e05       0x70 ./drivers/wdt.o
+ .debug_info    0x0000000000004e75      0x502 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
 
 .debug_abbrev   0x0000000000000000      0xfd1
  .debug_abbrev  0x0000000000000000       0xf8 ./cr_startup_lpc11.o
@@ -721,16 +721,16 @@ OUTPUT(RadioBlocksSniffer.axf elf32-littlearm)
  .debug_abbrev  0x0000000000000eb9       0x2c ./drivers/wdt.o
  .debug_abbrev  0x0000000000000ee5       0xec /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
 
-.debug_loc      0x0000000000000000     0x11dc
+.debug_loc      0x0000000000000000     0x11e8
  .debug_loc     0x0000000000000000      0x1b0 ./cr_startup_lpc11.o
  .debug_loc     0x00000000000001b0      0x150 ./main.o
  .debug_loc     0x0000000000000300      0x188 ./radio/hal.o
- .debug_loc     0x0000000000000488      0x544 ./radio/radio.o
- .debug_loc     0x00000000000009cc      0x224 ./drivers/gpio.o
- .debug_loc     0x0000000000000bf0      0x1c0 ./drivers/ssp.o
- .debug_loc     0x0000000000000db0      0x250 ./drivers/timer16.o
- .debug_loc     0x0000000000001000      0x144 ./drivers/uart.o
- .debug_loc     0x0000000000001144       0x98 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
+ .debug_loc     0x0000000000000488      0x550 ./radio/radio.o
+ .debug_loc     0x00000000000009d8      0x224 ./drivers/gpio.o
+ .debug_loc     0x0000000000000bfc      0x1c0 ./drivers/ssp.o
+ .debug_loc     0x0000000000000dbc      0x250 ./drivers/timer16.o
+ .debug_loc     0x000000000000100c      0x144 ./drivers/uart.o
+ .debug_loc     0x0000000000001150       0x98 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
 
 .debug_aranges  0x0000000000000000      0x380
  .debug_aranges
@@ -763,20 +763,20 @@ OUTPUT(RadioBlocksSniffer.axf elf32-littlearm)
  .debug_ranges  0x00000000000002a0       0x38 ./drivers/uart.o
  .debug_ranges  0x00000000000002d8       0x18 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
 
-.debug_line     0x0000000000000000     0x4012
+.debug_line     0x0000000000000000     0x4027
  .debug_line    0x0000000000000000      0x3fb ./cr_startup_lpc11.o
- .debug_line    0x00000000000003fb      0x60d ./main.o
- .debug_line    0x0000000000000a08      0x5f0 ./radio/hal.o
- .debug_line    0x0000000000000ff8      0x763 ./radio/radio.o
- .debug_line    0x000000000000175b      0x3bf ./drivers/adc.o
- .debug_line    0x0000000000001b1a      0x3c5 ./drivers/clkconfig.o
- .debug_line    0x0000000000001edf      0x671 ./drivers/gpio.o
- .debug_line    0x0000000000002550      0x3bf ./drivers/i2c.o
- .debug_line    0x000000000000290f      0x53f ./drivers/ssp.o
- .debug_line    0x0000000000002e4e      0x54d ./drivers/timer16.o
- .debug_line    0x000000000000339b      0x4b1 ./drivers/uart.o
- .debug_line    0x000000000000384c      0x3c8 ./drivers/wdt.o
- .debug_line    0x0000000000003c14      0x3fe /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
+ .debug_line    0x00000000000003fb      0x61a ./main.o
+ .debug_line    0x0000000000000a15      0x5f0 ./radio/hal.o
+ .debug_line    0x0000000000001005      0x764 ./radio/radio.o
+ .debug_line    0x0000000000001769      0x3bf ./drivers/adc.o
+ .debug_line    0x0000000000001b28      0x3c5 ./drivers/clkconfig.o
+ .debug_line    0x0000000000001eed      0x671 ./drivers/gpio.o
+ .debug_line    0x000000000000255e      0x3bf ./drivers/i2c.o
+ .debug_line    0x000000000000291d      0x53f ./drivers/ssp.o
+ .debug_line    0x0000000000002e5c      0x54d ./drivers/timer16.o
+ .debug_line    0x00000000000033a9      0x4b8 ./drivers/uart.o
+ .debug_line    0x0000000000003861      0x3c8 ./drivers/wdt.o
+ .debug_line    0x0000000000003c29      0x3fe /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
 
 .debug_macinfo  0x0000000000000000    0x49c00
  .debug_macinfo
@@ -806,32 +806,32 @@ OUTPUT(RadioBlocksSniffer.axf elf32-littlearm)
  .debug_macinfo
                 0x00000000000445be     0x5642 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
 
-.debug_str      0x0000000000000000     0x14de
+.debug_str      0x0000000000000000     0x14e4
  .debug_str     0x0000000000000000      0x20f ./cr_startup_lpc11.o
                                         0x237 (size before relaxing)
  .debug_str     0x000000000000020f      0x1b0 ./main.o
                                         0x2cd (size before relaxing)
  .debug_str     0x00000000000003bf      0x245 ./radio/hal.o
                                         0x3ed (size before relaxing)
- .debug_str     0x0000000000000604      0x596 ./radio/radio.o
-                                        0x797 (size before relaxing)
- .debug_str     0x0000000000000b9a       0x11 ./drivers/adc.o
+ .debug_str     0x0000000000000604      0x59c ./radio/radio.o
+                                        0x79d (size before relaxing)
+ .debug_str     0x0000000000000ba0       0x11 ./drivers/adc.o
                                         0x115 (size before relaxing)
- .debug_str     0x0000000000000bab       0x17 ./drivers/clkconfig.o
+ .debug_str     0x0000000000000bb1       0x17 ./drivers/clkconfig.o
                                         0x11b (size before relaxing)
- .debug_str     0x0000000000000bc2      0x544 ./drivers/gpio.o
+ .debug_str     0x0000000000000bc8      0x544 ./drivers/gpio.o
                                         0x6fe (size before relaxing)
- .debug_str     0x0000000000001106       0x11 ./drivers/i2c.o
+ .debug_str     0x000000000000110c       0x11 ./drivers/i2c.o
                                         0x115 (size before relaxing)
- .debug_str     0x0000000000001117      0x103 ./drivers/ssp.o
+ .debug_str     0x000000000000111d      0x103 ./drivers/ssp.o
                                         0x65b (size before relaxing)
- .debug_str     0x000000000000121a      0x19b ./drivers/timer16.o
+ .debug_str     0x0000000000001220      0x19b ./drivers/timer16.o
                                         0x8d5 (size before relaxing)
- .debug_str     0x00000000000013b5       0x8f ./drivers/uart.o
+ .debug_str     0x00000000000013bb       0x8f ./drivers/uart.o
                                         0x7fe (size before relaxing)
- .debug_str     0x0000000000001444       0x11 ./drivers/wdt.o
+ .debug_str     0x000000000000144a       0x11 ./drivers/wdt.o
                                         0x115 (size before relaxing)
- .debug_str     0x0000000000001455       0x89 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
+ .debug_str     0x000000000000145b       0x89 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
                                         0x3e1 (size before relaxing)
 
 .comment        0x0000000000000000       0x9a
@@ -953,13 +953,13 @@ OUTPUT(RadioBlocksSniffer.axf elf32-littlearm)
  .ARM.attributes
                 0x000000000000074f       0x23 /Applications/lpcxpresso_4.2.4_267/lpcxpresso/Tools/bin/../lib/gcc/arm-none-eabi/4.6.2/armv6-m/libcr_eabihelpers.a(memcpy.o)
 
-.debug_frame    0x0000000000000000      0xad8
+.debug_frame    0x0000000000000000      0xadc
  .debug_frame   0x0000000000000000      0x118 ./cr_startup_lpc11.o
  .debug_frame   0x0000000000000118       0xd0 ./main.o
  .debug_frame   0x00000000000001e8       0xf0 ./radio/hal.o
- .debug_frame   0x00000000000002d8      0x32c ./radio/radio.o
- .debug_frame   0x0000000000000604      0x14c ./drivers/gpio.o
- .debug_frame   0x0000000000000750      0x110 ./drivers/ssp.o
- .debug_frame   0x0000000000000860      0x168 ./drivers/timer16.o
- .debug_frame   0x00000000000009c8       0xcc ./drivers/uart.o
- .debug_frame   0x0000000000000a94       0x44 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)
+ .debug_frame   0x00000000000002d8      0x330 ./radio/radio.o
+ .debug_frame   0x0000000000000608      0x14c ./drivers/gpio.o
+ .debug_frame   0x0000000000000754      0x110 ./drivers/ssp.o
+ .debug_frame   0x0000000000000864      0x168 ./drivers/timer16.o
+ .debug_frame   0x00000000000009cc       0xcc ./drivers/uart.o
+ .debug_frame   0x0000000000000a98       0x44 /Users/egnoske/CMD Projects/work/sniffer/CMSISv2p00_LPC11xx/Debug/libCMSISv2p00_LPC11xx.a(system_LPC11xx.o)

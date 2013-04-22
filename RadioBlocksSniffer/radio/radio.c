@@ -275,9 +275,13 @@ void radio_trx_end_event(void)
  */
 u8 radio_get_channel(void)
 {
+	u8 chann;
+
     // Only the lowest 5 bits have channel information, therefore, mask off
     // bits that have no channel info.
-    return (0x1F && hal_subregister_read(SR_CHANNEL));
+	//chann = 0x1F && hal_subregister_read(SR_CHANNEL);
+	chann = hal_subregister_read(SR_CHANNEL);
+    return (chann);
 }
 
 /*  

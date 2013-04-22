@@ -3,17 +3,17 @@
  * (C) Code Red Technologies Ltd, 2008-2013
  * Linker script memory definitions
  * Created from LinkMemoryTemplate
- * By LPCXpresso v4.2.4 [Build 267] [2012-07-11]  on Tue Apr 09 21:35:04 MDT 2013)
+ * By LPCXpresso v4.2.4 [Build 267] [2012-07-11]  on Mon Apr 22 09:18:13 MDT 2013)
 */
 
 MEMORY
 {
   /* Define each memory region */
   MFlash32 (rx) : ORIGIN = 0x0, LENGTH = 0x8000 /* 32k */
-  RamLoc4 (rwx) : ORIGIN = 0x10000000, LENGTH = 0x1000 /* 4k */
+  RamLoc8 (rwx) : ORIGIN = 0x10000000, LENGTH = 0x2000 /* 8k */
 
 }
   /* Define a symbol for the top of each memory region */
   __top_MFlash32 = 0x0 + 0x8000;
-  __top_RamLoc4 = 0x10000000 + 0x1000;
+  __top_RamLoc8 = 0x10000000 + 0x2000;
 
