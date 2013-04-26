@@ -30,7 +30,7 @@
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1933892358" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__REDLIB__"/>
 									<listOptionValue builtIn="false" value="CONFIG_UART_ENABLE_INTERRUPT=1"/>
-									<listOptionValue builtIn="false" value="SNIFER_MODE=1"/>
+									<listOptionValue builtIn="false" value="SNIFFER_MODE=0"/>
 									<listOptionValue builtIn="false" value="CONFIG_UART_DEFAULT_UART_IRQHANDLER=1"/>
 									<listOptionValue builtIn="false" value="__USE_CMSIS"/>
 									<listOptionValue builtIn="false" value="CONFIG_ENABLE_DRIVER_UART=1"/>

@@ -39,8 +39,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-//#define SNIFER_MODE 1
-
 #define true 1
 #define false 0
 
@@ -128,7 +126,7 @@ void radioTrxend_event(void);
    @retval RADIO_TIMED_OUT The radio transceiver was not able to
    initialize and enter TRX_OFF state within the specified time.
 */
-#define ETG 0
+
 radio_status_t radio_init(void)
 {
     radio_status_t init_status = RADIO_SUCCESS;
@@ -146,7 +144,7 @@ radio_status_t radio_init(void)
 
     delay_microseconds(0, TIME_P_ON_TO_TRX_OFF); //Wait for the transition to be complete.
 
-#if ETG
+#if !SNIFFER_MODE
     hal_register_write(RG_IRQ_MASK, RF2xx_SUPPORTED_INTERRUPT_MASK);
 
     // Set the CCA ED threshold really low
@@ -157,7 +155,9 @@ radio_status_t radio_init(void)
 
     // Turn on for receiving
     radio_set_trx_state(RX_ON);
-#endif // ETG
+#endif // !SNIFFER_MODE
+
+#if SNIFFER_MODE
     // Configure radio for sniffer mode.
 
     hal_register_write(RG_SHORT_ADDR_0, 0);
@@ -180,10 +180,12 @@ radio_status_t radio_init(void)
 
     // Disable ACKs in promiscuous mode.
     hal_register_write(RG_CSMA_SEED_1, 0x10);
+#endif // SNIFFER_MODE
 
     // Only generate TRX End interrupts.
     hal_register_write(RG_IRQ_MASK, RF2xx_SUPPORTED_INTERRUPT_MASK);
-#if ETG
+
+#if !SNIFFER_MODE
     //Force transition to TRX_OFF.
     hal_subregister_write(SR_TRX_CMD, CMD_FORCE_TRX_OFF);
 
@@ -193,7 +195,7 @@ radio_status_t radio_init(void)
  	radio_set_trx_state(PLL_ON);
 
     delay_microseconds(0, TIME_TRX_OFF_TO_PLL_ACTIVE); //Wait for the transition to be complete.
-#endif // ETG
+#endif // SNIFFER_MODE
     // Put radio into RX_AACK mode
     hal_subregister_write(SR_TRX_CMD, RX_ON);
 

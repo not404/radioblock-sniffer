@@ -31,6 +31,8 @@ void UART_IRQHandler(void)
 {
   uint8_t IIRValue, LSRValue;
   uint8_t Dummy = Dummy;
+  // ETG
+  static uint8_t chann = 0;
 
   IIRValue = LPC_UART->IIR;
     
@@ -70,8 +72,20 @@ void UART_IRQHandler(void)
     }
 
     // Get sniffer channel or Sniffer channel change
-    if((UARTCount == 1) || (UARTCount > 2))
-  	  rxdFlag = 1;
+    if((UARTCount == 1) && ((UARTBuffer[0] == 'C') || (UARTBuffer[0] == 'c')))
+    {
+        chann = 1;
+    }
+    else if((UARTCount == 1) && (UARTBuffer[0] == 'G'))
+    	rxdFlag = 1;
+
+    if((chann == 1) && (UARTCount >= 3))
+    {
+    	rxdFlag = 1;
+    	chann = 0;
+    }
+
+
   }
   else if (IIRValue == IIR_CTI)	/* Character timeout indicator */
   {

@@ -34,6 +34,7 @@ void writeOneByte(uint8_t ch);
 void convertTwoBytes(void);
 void convertOneByte(void);
 void spaces(u8 spaces);
+void tx_test(void);
 
 typedef enum{
 				fr_len  = 99,
@@ -70,14 +71,25 @@ int main(void)
 
 	// Set a default channel
 	radio_set_channel(15);
-	channel = radio_get_channel();
-
+	// Check setting of SNIFFER_MODE
+#if !SNIFFER_MODE
+//	init_timer16(uint8_t timer_num, uint16_t timerInterval);
+//	void enable_timer16(uint8_t timer_num);
+	u32 i;
+	while(1)
+	{
+		tx_test();
+		//delayMs(1, 50000);
+		for(i = 0; i < 100000; i++)
+			asm("nop");
+	}
+#endif
     while(1)
     {
     	// Check to see if channel changed
     	if(rxdFlag)
     	{
-    		if(UARTBuffer[0] == 'C')
+    		if((UARTBuffer[0] == 'C')||(UARTBuffer[0] == 'c'))
     		{
     			channel = (UARTBuffer[1] - 0x30) * 10;
     			channel += (UARTBuffer[2] - 0x30);
@@ -85,8 +97,6 @@ int main(void)
     			rxdFlag = 0;
     			UARTCount = 0;
     			memset(UARTBuffer, 0, BUFSIZE);
-    			// DEBUG
-    			//channel = radio_get_channel();
     		}
     		else if(UARTBuffer[0] == 'G')
     		{
@@ -135,7 +145,6 @@ int main(void)
 							len -= 2;
 							break;
 						case seq:
-							// ETG spaces(2);
 							convertOneByte();
 							if(!ackFlag)
 							{
@@ -149,51 +158,43 @@ int main(void)
 							break;
 						// panid
 						case panid:
-							// ETG spaces(3);
 							convertTwoBytes();
 							fState = macdst;
 							len -= 2;
 							break;
 						// mac dest
 						case macdst:
-							// ETG spaces(3);
 							convertTwoBytes();
 							fState = macsrc;
 							len -= 2;
 							break;
 						// mac src
 						case macsrc:
-							// ETG spaces(4);
 							convertTwoBytes();
 							fState = nwkfcf;
 							len -= 2;
 							break;
 						case nwkfcf:
-							// ETG spaces(8);
 							convertOneByte();
 							fState = nwkseq;
 							len -= 1;
 							break;
 						case nwkseq:
-							// ETG spaces(2);
 							convertOneByte();
 							fState = nwksrc;
 							len -= 1;
 							break;
 						// nwk src
 						case nwksrc:
-							// ETG spaces(2);
 							convertTwoBytes();
 							fState = nwkdst;
 							len -= 2;
 							break;
 						// nwk dst
 						case nwkdst:
-							// ETG spaces(3);
 							convertTwoBytes();
 							fState = payload;
 							len -= 2;
-							// ETG spaces(3);
 							break;
 						// Payload
 						case payload:
@@ -204,18 +205,13 @@ int main(void)
 							break;
 						// LQI
 						case lqi:
-							// ETG if(!ackFlag)
-								// ETG spaces(2);
-							// ETG else
 							if(ackFlag)
 							{
-								// ETG spaces(62);
 								ackFlag = 0;
 							}
 							convertOneByte();
 							fState = rssi;
 							len--;
-							// ETG spaces(1);
 							break;
 						// rssi
 						case rssi:
@@ -237,20 +233,56 @@ int main(void)
 	return 0 ;
 }
 
-/* ETG
-// Functions for Hex Ascii conversion and byte formatting for the sniffer display.
-void spaces(u8 spaces)
-{
-	u8 i;
 
-	for(i=0; i< spaces; i++)
-	{
-		// Put a carriage return after each line to make it readable
-		while ( !(LPC_UART->LSR & LSR_THRE) );
-		LPC_UART->THR = ' ';
-	}
+void tx_test(void)
+{
+	u8 buf[128];
+	u8 static seq_num = 0;
+
+	// Setup FCF
+	buf[0] = 0x41;
+	buf[1] = 0x88;
+
+	// Seq.
+	buf[2] = seq_num++;
+
+	// panid
+	buf[3] = 0xcd;
+	buf[4] = 0xab;
+
+	// mac dest
+	buf[5] = 0xef;
+	buf[6] = 0xbe;
+
+	// mac src
+	buf[7] = 0xad;
+	buf[8] = 0xba;
+
+	// nwk FCF
+	buf[9] = 01;
+
+	// nwk SEQ
+	buf[10] = seq_num;
+
+	// nwk src
+	buf[11] = 0xad;
+	buf[12] = 0xba;
+
+	// nwk dest
+	buf[13] = 0xef;
+	buf[14] = 0xbe;
+
+	// Payload
+	buf[15] = 'H';
+	buf[16] = 'o';
+	buf[17] = 'l';
+	buf[18] = 'a';
+	buf[19] = '!';
+
+	radio_send_data(20, buf);
 }
-*/
+
+
 
 void writeOneByte(uint8_t ch)
 {
